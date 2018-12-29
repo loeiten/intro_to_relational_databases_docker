@@ -18,24 +18,24 @@ RUN pip2 install flask packaging oauth2client redis passlib flask-httpauth
 RUN pip2 install sqlalchemy flask-sqlalchemy psycopg2-binary bleach requests
 
 # Set the workdir
-WORKDIR /vagrant/
+WORKDIR /added_dirs/
 
 # Add the files
-ADD catalog/
-ADD forum/
-ADD tournament/
-
-# Setup the database
-RUN su postgres -c 'createuser -dRS vagrant'
-RUN su vagrant -c 'createdb'
-RUN su vagrant -c 'createdb news'
-RUN su vagrant -c 'createdb forum'
-RUN su vagrant -c 'psql forum -f /vagrant/forum/forum.sql'
+ADD catalog/ /added_dirs/catalog/
+ADD forum/ /added_dirs/forum/
+ADD tournament/ /added_dirs/tournament/
 
 # Install redis
-ADD http://download.redis.io/redis-stable.tar.gz
-RUN tar xvzf redis-stable.tar.gz
-RUN cd redis-stable
+WORKDIR /opt/
+ADD http://download.redis.io/redis-stable.tar.gz redis-stable.tar.gz
+RUN tar -xvzf redis-stable.tar.gz
+WORKDIR /opt/redis-stable
 RUN make
 RUN make install
+
+# Setup the user
+ADD postgres_commands.sh /postgres_commands.sh
+RUN chmod +x /postgres_commands.sh
+WORKDIR /home/new_user/
+ENTRYPOINT ["/postgres_commands.sh"]
 
